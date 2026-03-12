@@ -1,0 +1,1252 @@
+# Oak 框架問題排查、GitHub Pages 部署與 Bootstrap 模板應用課程筆記(Markdown格式)
+
+## 一、課程概述
+
+本堂課主要處理以下主題:
+1. **Deno 版本升級問題**: Deno 2.x 的變動與影響
+2. **模板引擎(EJS)與 Session**: 因版本問題暫時跳過
+3. **Canvas 繪圖**: HTML5 2D 繪圖 API
+4. **SVG 向量圖**: 可縮放向量圖形
+5. **Bootstrap 模板**: 快速建立響應式網站
+6. **GitHub Pages 部署**: 將專案發布為靜態網站
+7. **遊戲開發討論**: Phaser.js 與遊戲引擎簡介
+
+---
+
+## 二、Deno 版本升級問題
+
+### 2.1 問題背景
+
+**Deno 版本變遷**:
+- 課程範例基於 **Deno 1.x**
+- 目前最新版本為 **Deno 2.x**
+- 重大變更導致部分舊程式無法運行
+
+### 2.2 主要變更:模組引用方式
+
+#### 舊方式(Deno 1.x)
+
+```javascript
+// 從 deno.land/x 引用模組
+import { Application } from "https://deno.land/x/oak/mod.ts";
+```
+
+**問題**: 
+- Deno 2.x 隱藏了 `deno.land/x` 的網頁存取
+- 瀏覽器無法訪問,但程式仍可使用
+- 官方推動新的 **JSR**(JavaScript Registry)
+
+#### 新方式(Deno 2.x 推薦)
+
+```javascript
+// 從 JSR 引用模組
+import { Application } from "jsr:@oak/oak";
+```
+
+### 2.3 影響與對策
+
+**課程範例影響**:
+- 需要逐一更新所有引用
+- 部分套件(如 Oak Session)可能暫時無法使用
+- EJS 模板引擎測試失敗
+
+**學生對策**:
+1. **優先使用新語法**: 新專案直接使用 JSR
+2. **舊專案仍可運行**: 暫時不影響已有程式碼
+3. **關注官方文件**: 隨時查看最新建議
+
+> **教師說明**: 下週將修正所有範例程式,改用 Deno 2.x 新語法
+
+---
+
+## 三、HTML Canvas 繪圖
+
+### 3.1 Canvas 基礎
+
+#### 什麼是 Canvas
+
+- HTML5 提供的 **點陣圖繪圖 API**
+- 使用 JavaScript 動態繪製圖形
+- 適合遊戲、圖表、動畫等應用
+
+#### 基本結構
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Canvas 範例</title>
+</head>
+<body>
+    <!-- 定義 Canvas 元素 -->
+    <canvas id="myCanvas" width="400" height="300" style="border:1px solid #000;">
+        您的瀏覽器不支援 Canvas
+    </canvas>
+
+    <script>
+        // 取得 Canvas 元素
+        const canvas = document.getElementById('myCanvas');
+      
+        // 取得 2D 繪圖上下文
+        const ctx = canvas.getContext('2d');
+      
+        // 開始繪圖...
+    </script>
+</body>
+</html>
+```
+
+### 3.2 繪製基本圖形
+
+#### 畫線
+
+```javascript
+const canvas = document.getElementById('myCanvas');
+const ctx = canvas.getContext('2d');
+
+// 開始路徑
+ctx.beginPath();
+
+// 移動到起點
+ctx.moveTo(50, 50);
+
+// 畫線到終點
+ctx.lineTo(200, 150);
+
+// 設定線條顏色
+ctx.strokeStyle = 'blue';
+
+// 設定線條寬度
+ctx.lineWidth = 3;
+
+// 實際繪製
+ctx.stroke();
+```
+
+#### 畫圓形
+
+```javascript
+// arc(x, y, radius, startAngle, endAngle)
+// 角度使用弧度(radians): 2π = 360度
+
+ctx.beginPath();
+ctx.arc(200, 150, 50, 0, 2 * Math.PI);
+ctx.fillStyle = 'yellow';
+ctx.fill();
+ctx.strokeStyle = 'green';
+ctx.lineWidth = 4;
+ctx.stroke();
+```
+
+#### 畫矩形
+
+```javascript
+// 填滿矩形
+ctx.fillStyle = 'red';
+ctx.fillRect(50, 50, 100, 80);  // (x, y, width, height)
+
+// 矩形框線
+ctx.strokeStyle = 'blue';
+ctx.lineWidth = 2;
+ctx.strokeRect(200, 50, 100, 80);
+
+// 清除矩形區域
+ctx.clearRect(60, 60, 30, 30);
+```
+
+### 3.3 文字繪製
+
+```javascript
+// 設定字型
+ctx.font = '30px Arial';
+
+// 設定文字顏色
+ctx.fillStyle = 'black';
+
+// 繪製文字
+ctx.fillText('Hello Canvas', 50, 100);
+
+// 文字框線
+ctx.strokeText('Hello Canvas', 50, 150);
+```
+
+**注意事項**:
+- 字型跨平台差異
+- Windows 和 Mac 預設字型不同
+- 指定不存在的字型會退化為預設字型
+
+### 3.4 漸層效果
+
+#### 線性漸層
+
+```javascript
+// 創建線性漸層(x0, y0, x1, y1)
+const gradient = ctx.createLinearGradient(0, 0, 200, 0);
+
+// 添加色標
+gradient.addColorStop(0, 'red');
+gradient.addColorStop(0.5, 'yellow');
+gradient.addColorStop(1, 'green');
+
+// 使用漸層填充
+ctx.fillStyle = gradient;
+ctx.fillRect(50, 50, 200, 100);
+```
+
+#### 放射狀漸層
+
+```javascript
+// 創建放射漸層(x0, y0, r0, x1, y1, r1)
+const radial = ctx.createRadialGradient(150, 150, 10, 150, 150, 100);
+
+radial.addColorStop(0, 'white');
+radial.addColorStop(0.5, 'cyan');
+radial.addColorStop(1, 'blue');
+
+ctx.fillStyle = radial;
+ctx.fillRect(50, 50, 200, 200);
+```
+
+### 3.5 圖片繪製
+
+```html
+<img id="sourceImage" src="image.jpg" style="display:none;">
+<canvas id="myCanvas" width="400" height="300"></canvas>
+
+<script>
+    const canvas = document.getElementById('myCanvas');
+    const ctx = canvas.getContext('2d');
+    const img = document.getElementById('sourceImage');
+
+    // 等待圖片載入
+    img.onload = function() {
+        // 繪製圖片到 Canvas
+        ctx.drawImage(img, 0, 0, 400, 300);
+      
+        // 可以在圖片上繼續繪製其他圖形
+        ctx.beginPath();
+        ctx.arc(200, 150, 50, 0, 2 * Math.PI);
+        ctx.strokeStyle = 'red';
+        ctx.lineWidth = 5;
+        ctx.stroke();
+    };
+</script>
+```
+
+**用途**:
+- 載入圖片作為背景
+- 在圖片上添加圖形標記
+- 圖片濾鏡與特效處理
+
+---
+
+## 四、SVG 向量圖形
+
+### 4.1 SVG vs Canvas
+
+| 特性 | Canvas | SVG |
+|------|--------|-----|
+| 類型 | 點陣圖(Raster) | 向量圖(Vector) |
+| 繪製方式 | JavaScript 程式碼 | XML 標記 |
+| 縮放 | 會失真 | 不失真 |
+| 效能 | 適合大量繪製 | 適合少量複雜圖形 |
+| DOM | 不在 DOM 中 | 每個元素都在 DOM 中 |
+| 事件處理 | 需手動計算 | 可直接綁定事件 |
+
+### 4.2 SVG 基本語法
+
+#### 圓形
+
+```html
+<svg width="200" height="200">
+    <circle 
+        cx="100" 
+        cy="100" 
+        r="50" 
+        fill="yellow" 
+        stroke="green" 
+        stroke-width="4"
+    />
+</svg>
+```
+
+**屬性說明**:
+- `cx`, `cy`: 圓心座標
+- `r`: 半徑
+- `fill`: 填充顏色
+- `stroke`: 邊框顏色
+- `stroke-width`: 邊框寬度
+
+#### 橢圓
+
+```html
+<svg width="200" height="200">
+    <ellipse 
+        cx="100" 
+        cy="100" 
+        rx="80" 
+        ry="50" 
+        fill="lightblue"
+    />
+</svg>
+```
+
+**屬性說明**:
+- `rx`: X 軸半徑
+- `ry`: Y 軸半徑
+
+#### 矩形
+
+```html
+<svg width="200" height="200">
+    <rect 
+        x="50" 
+        y="50" 
+        width="100" 
+        height="80" 
+        fill="red" 
+        stroke="black" 
+        stroke-width="2"
+    />
+</svg>
+```
+
+#### 圓角矩形
+
+```html
+<svg width="200" height="200">
+    <rect 
+        x="50" 
+        y="50" 
+        width="100" 
+        height="80" 
+        rx="10" 
+        ry="10" 
+        fill="blue"
+    />
+</svg>
+```
+
+**屬性說明**:
+- `rx`, `ry`: 圓角半徑
+
+### 4.3 複雜圖形
+
+#### 多邊形
+
+```html
+<svg width="300" height="200">
+    <polygon 
+        points="150,20 250,180 50,180" 
+        fill="lime" 
+        stroke="purple" 
+        stroke-width="3"
+    />
+</svg>
+```
+
+**說明**: `points` 屬性定義各頂點座標,格式為 `x1,y1 x2,y2 x3,y3 ...`
+
+#### 路徑(Path)
+
+```html
+<svg width="300" height="200">
+    <path 
+        d="M 50 50 L 150 50 L 150 150 L 50 150 Z" 
+        fill="none" 
+        stroke="blue" 
+        stroke-width="2"
+    />
+</svg>
+```
+
+**路徑命令**:
+- `M x y`: 移動到(Move to)
+- `L x y`: 畫線到(Line to)
+- `H x`: 水平線
+- `V y`: 垂直線
+- `Z`: 關閉路徑
+
+### 4.4 SVG 編輯工具
+
+**Inkscape**(推薦)
+- 免費開源
+- 跨平台(Windows/Mac/Linux)
+- 專業向量圖編輯
+- 可匯出 SVG 格式
+- [官網下載](https://inkscape.org/)
+
+**使用流程**:
+1. 在 Inkscape 中繪製圖形
+2. 匯出為 SVG 格式
+3. 複製 SVG 程式碼到 HTML
+
+> **提示**: 直接手寫複雜 SVG 不切實際,建議使用工具輔助
+
+---
+
+## 五、HTML 媒體元素
+
+### 5.1 影片播放
+
+#### 基本語法
+
+```html
+<video width="640" height="360" controls>
+    <source src="movie.mp4" type="video/mp4">
+    <source src="movie.webm" type="video/webm">
+    <source src="movie.ogg" type="video/ogg">
+    您的瀏覽器不支援影片播放
+</video>
+```
+
+**屬性說明**:
+- `width`, `height`: 播放器尺寸
+- `controls`: 顯示控制按鈕(播放、暫停、音量等)
+- `autoplay`: 自動播放
+- `loop`: 循環播放
+- `muted`: 靜音
+
+#### 多格式支援
+
+**為什麼需要多格式?**
+- 不同瀏覽器支援的格式不同
+- 提供多種格式確保相容性
+
+**常見格式**:
+- **MP4** (H.264): 最廣泛支援
+- **WebM**: Google 推動的開源格式
+- **Ogg**: 開源格式,較少瀏覽器支援
+
+### 5.2 JavaScript 控制影片
+
+```html
+<video id="myVideo" width="640" height="360">
+    <source src="movie.mp4" type="video/mp4">
+</video>
+
+<button onclick="playPause()">播放/暫停</button>
+<button onclick="makeBig()">放大</button>
+<button onclick="makeSmall()">縮小</button>
+
+<script>
+    const video = document.getElementById('myVideo');
+  
+    function playPause() {
+        if (video.paused) {
+            video.play();
+        } else {
+            video.pause();
+        }
+    }
+  
+    function makeBig() {
+        video.width = 960;
+    }
+  
+    function makeSmall() {
+        video.width = 320;
+    }
+</script>
+```
+
+### 5.3 Flash 的歷史
+
+**Flash 簡史**:
+- **1996年**: Macromedia 推出 Flash
+- **1998-2010**: 網路影音動畫的主流技術
+- **2011年**: Apple 禁止 iOS 使用 Flash
+- **2020年**: Adobe 正式停止支援
+
+**為什麼 Flash 被淘汰?**
+1. 安全性問題
+2. 效能不佳(耗電)
+3. 不支援行動裝置
+4. HTML5 提供原生替代方案
+
+**Java Applet 的命運**:
+- Java 最初(1995)是為網頁動畫設計
+- 在網頁領域慘敗
+- 轉而在伺服器端(後端)與 Android 成功
+- 網頁動畫市場被 Flash 佔據
+- 最終 HTML5 取代 Flash
+
+### 5.4 嵌入 YouTube 影片
+
+#### 手動方式
+
+```html
+<iframe 
+    width="560" 
+    height="315" 
+    src="https://www.youtube.com/embed/VIDEO_ID" 
+    frameborder="0" 
+    allowfullscreen>
+</iframe>
+```
+
+#### YouTube 自動產生
+
+1. 在 YouTube 影片頁面點擊「分享」
+2. 選擇「嵌入」
+3. 複製產生的 `<iframe>` 程式碼
+4. 貼到 HTML 中
+
+---
+
+## 六、Web API
+
+### 6.1 地理位置 API (Geolocation)
+
+#### 取得當前位置
+
+```javascript
+if ("geolocation" in navigator) {
+    navigator.geolocation.getCurrentPosition(
+        // 成功回調
+        function(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            console.log(`緯度: ${lat}, 經度: ${lon}`);
+        },
+        // 錯誤回調
+        function(error) {
+            console.error("無法取得位置:", error.message);
+        }
+    );
+} else {
+    console.log("瀏覽器不支援地理位置");
+}
+```
+
+#### 平台差異
+
+| 裝置類型 | 定位精度 | 定位方式 |
+|---------|---------|---------|
+| 手機(開啟 GPS) | **高**(精確到米) | GPS + 基地台 + Wi-Fi |
+| 手機(關閉 GPS) | 中 | 基地台 + Wi-Fi |
+| 電腦 | **低**(城市級) | IP 位址推測 |
+
+**注意事項**:
+- 需要用戶授權
+- 桌面瀏覽器主要靠 IP 推測(不準確)
+- 手機若從未開啟定位,可能抓不到位置
+
+### 6.2 拖放 API (Drag and Drop)
+
+#### 基本範例
+
+```html
+<div id="drag1" draggable="true" ondragstart="drag(event)">
+    拖動我
+</div>
+
+<div id="dropZone" ondrop="drop(event)" ondragover="allowDrop(event)">
+    放置區
+</div>
+
+<script>
+    function allowDrop(event) {
+        event.preventDefault();  // 允許放置
+    }
+  
+    function drag(event) {
+        event.dataTransfer.setData("text", event.target.id);
+    }
+  
+    function drop(event) {
+        event.preventDefault();
+        const data = event.dataTransfer.getData("text");
+        const draggedElement = document.getElementById(data);
+        event.target.appendChild(draggedElement);
+    }
+</script>
+```
+
+#### GitHub 的拖放上傳
+
+```html
+<div id="uploadZone" style="border: 2px dashed #ccc; padding: 50px; text-align: center;">
+    將檔案拖曳到這裡上傳
+</div>
+
+<script>
+    const zone = document.getElementById('uploadZone');
+  
+    zone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        zone.style.backgroundColor = '#e0e0e0';
+    });
+  
+    zone.addEventListener('dragleave', () => {
+        zone.style.backgroundColor = '';
+    });
+  
+    zone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        zone.style.backgroundColor = '';
+      
+        const files = e.dataTransfer.files;
+        console.log('上傳檔案:', files);
+      
+        // 實際上傳邏輯...
+    });
+</script>
+```
+
+### 6.3 Web Storage API
+
+#### Local Storage vs Session Storage
+
+| 特性 | Local Storage | Session Storage |
+|------|--------------|----------------|
+| 容量 | ~5MB | ~5MB |
+| 生命週期 | 永久(除非手動清除) | 分頁關閉即清除 |
+| 作用域 | 同源(同網域) | 同分頁 |
+
+#### Local Storage 使用
+
+```javascript
+// 儲存資料
+localStorage.setItem('username', 'Alice');
+localStorage.setItem('score', '1200');
+
+// 讀取資料
+const username = localStorage.getItem('username');
+console.log(username);  // 'Alice'
+
+// 刪除資料
+localStorage.removeItem('username');
+
+// 清空所有資料
+localStorage.clear();
+```
+
+#### Session Storage 使用
+
+```javascript
+// 語法與 localStorage 相同
+sessionStorage.setItem('tempData', 'value');
+const data = sessionStorage.getItem('tempData');
+sessionStorage.removeItem('tempData');
+sessionStorage.clear();
+```
+
+#### Cookie vs Storage
+
+| 特性 | Cookie | Local Storage |
+|------|--------|--------------|
+| 容量 | ~4KB | ~5MB |
+| 每次請求 | 自動傳送到伺服器 | 不傳送 |
+| 主要用途 | 身份驗證 | 客戶端資料儲存 |
+| 過期時間 | 可設定 | 永久(Local)或分頁關閉(Session) |
+
+**Cookie 範例**:
+```javascript
+// 設定 Cookie(expires 為過期時間)
+document.cookie = "username=John; expires=Fri, 31 Dec 2025 23:59:59 GMT";
+
+// 讀取 Cookie
+console.log(document.cookie);
+```
+
+> **Session 的實作**: 通常是伺服器端 Session + 客戶端 Cookie 的組合
+
+### 6.4 Web Workers
+
+**用途**: 在背景執行耗時的 JavaScript,避免阻塞主執行緒
+
+#### 主程式
+
+```html
+<script>
+    // 創建 Worker
+    const worker = new Worker('worker.js');
+  
+    // 監聽 Worker 訊息
+    worker.onmessage = function(event) {
+        console.log('Worker 回傳:', event.data);
+    };
+  
+    // 發送訊息給 Worker
+    worker.postMessage('開始計算');
+</script>
+```
+
+#### worker.js
+
+```javascript
+// Worker 內部程式碼
+onmessage = function(event) {
+    console.log('收到訊息:', event.data);
+  
+    // 執行耗時計算
+    let result = 0;
+    for (let i = 0; i < 1000000000; i++) {
+        result += i;
+    }
+  
+    // 回傳結果
+    postMessage(result);
+};
+```
+
+---
+
+## 七、Bootstrap 模板框架
+
+### 7.1 什麼是 Bootstrap
+
+- Twitter 開發的前端框架
+- 提供預設的 CSS 樣式與 JavaScript 元件
+- 響應式設計(Responsive Design)
+- 目前版本: Bootstrap 5
+
+### 7.2 引入 Bootstrap
+
+#### 使用 CDN(推薦)
+
+```html
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bootstrap 範例</title>
+  
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- 內容 -->
+  
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+```
+
+### 7.3 Grid 系統
+
+Bootstrap 使用 **12欄 Grid 系統**進行排版
+
+#### 基本結構
+
+```html
+<div class="container">
+    <div class="row">
+        <div class="col-4">佔 4 欄(33%)</div>
+        <div class="col-8">佔 8 欄(67%)</div>
+    </div>
+</div>
+```
+
+#### 響應式欄位
+
+```html
+<div class="container">
+    <div class="row">
+        <!-- 小螢幕佔 12 欄,中螢幕以上佔 6 欄 -->
+        <div class="col-12 col-md-6">內容 1</div>
+        <div class="col-12 col-md-6">內容 2</div>
+    </div>
+</div>
+```
+
+**斷點(Breakpoints)**:
+- `col-*`: 極小螢幕(<576px)
+- `col-sm-*`: 小螢幕(≥576px)
+- `col-md-*`: 中螢幕(≥768px)
+- `col-lg-*`: 大螢幕(≥992px)
+- `col-xl-*`: 超大螢幕(≥1200px)
+
+### 7.4 常用元件
+
+#### 按鈕
+
+```html
+<button class="btn btn-primary">主要按鈕</button>
+<button class="btn btn-success">成功按鈕</button>
+<button class="btn btn-danger">危險按鈕</button>
+<button class="btn btn-warning">警告按鈕</button>
+<button class="btn btn-info">資訊按鈕</button>
+```
+
+#### 表格
+
+```html
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>姓名</th>
+            <th>年齡</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Alice</td>
+            <td>25</td>
+        </tr>
+        <tr>
+            <td>Bob</td>
+            <td>30</td>
+        </tr>
+    </tbody>
+</table>
+```
+
+#### 警告框
+
+```html
+<div class="alert alert-success">操作成功!</div>
+<div class="alert alert-danger">發生錯誤!</div>
+<div class="alert alert-warning">請注意!</div>
+```
+
+### 7.5 Bootstrap 模板資源
+
+#### 官方範例
+
+- [Bootstrap Examples](https://getbootstrap.com/docs/5.3/examples/)
+- 完全免費
+- 可直接複製程式碼
+
+#### 付費模板
+
+- [Bootstrap Themes](https://themes.getbootstrap.com/)
+- 價格約 $49 美元
+- 更精緻的設計
+
+#### 其他 CSS 框架
+
+- **Tailwind CSS**: 近年最熱門,高度可客製化
+- **Bulma**: 純 CSS,無 JavaScript
+- **Foundation**: 企業級框架
+- **Pure CSS**: 輕量級
+
+---
+
+## 八、GitHub Pages 部署實戰
+
+### 8.1 部署流程
+
+#### 步驟一:啟用 GitHub Pages
+
+1. 進入專案的 **Settings**
+2. 左側選單找到 **Pages**
+3. Source 選擇 **GitHub Actions**
+
+#### 步驟二:選擇部署方式
+
+**Static HTML**(靜態網站,最簡單):
+```
+Pages → Source: GitHub Actions → Static HTML → Configure
+```
+
+#### 步驟三:設定 Workflow
+
+系統自動產生 `.github/workflows/static.yml`:
+
+```yaml
+name: Deploy static content to Pages
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
+```
+
+**直接 Commit 即可,無需修改**
+
+#### 步驟四:等待部署完成
+
+- 進入 **Actions** 頁面查看進度
+- 顯示綠色勾勾表示成功
+- 通常 1-5 分鐘完成
+
+### 8.2 訪問已部署的網站
+
+**網址格式**:
+```
+https://username.github.io/repo-name/
+```
+
+**範例**:
+```
+使用者: ccckmit
+專案: html-to-server
+網址: https://ccckmit.github.io/html-to-server/
+```
+
+### 8.3 常見問題
+
+#### 問題一:首頁找不到
+
+**原因**: 根目錄沒有 `index.html`
+
+**解決**:
+```
+方法一: 在根目錄放置 index.html
+方法二: 訪問時指定完整路徑
+例: https://username.github.io/repo/path/to/page.html
+```
+
+#### 問題二:相對路徑失效
+
+**原因**: Fork 別人的專案,專案內使用絕對路徑
+
+**範例錯誤**:
+```html
+<!-- 原專案 -->
+<a href="/original-owner/original-repo/page.html">連結</a>
+
+<!-- Fork 後變成 -->
+<!-- 連結指向原作者網址,不是你的網址 -->
+```
+
+**解決**:
+```html
+<!-- 改用相對路徑 -->
+<a href="page.html">連結</a>
+```
+
+### 8.4 實戰示範:部署 Phaser 遊戲
+
+#### Fork 專案
+
+1. 找到 Phaser 範例專案(例: [phaser-games](https://github.com/some-user/phaser-games))
+2. 點擊 **Fork** 按鈕
+
+#### 啟用 Pages
+
+```
+Settings → Pages → Source: GitHub Actions → Static HTML → Commit
+```
+
+#### 訪問網站
+
+```
+https://your-username.github.io/phaser-games/
+```
+
+---
+
+## 九、期中期末作業說明
+
+### 9.1 繳交規範
+
+#### 作業組成
+
+**期中作業**(30%):
+- 整合所有平時作業
+- 可以是單一完整網站
+- 或多個獨立作業的集合
+
+**期末作業**(30%):
+- 獨立專題
+- 必須包含前端與後端
+- 需使用資料庫(SQLite)
+
+#### 文件要求
+
+**README.md 必填內容**:
+```markdown
+# 期中作業:作業整合
+
+學號: 12345678
+姓名: 王小明
+
+## 作業列表
+
+### 作業一:基礎 HTML
+- [查看作業](homework/01/)
+- 來源: 完全原創
+- 說明: 手刻 HTML+CSS
+
+### 作業二:JavaScript 計算機
+- [查看作業](homework/02/)
+- 來源: 參考 W3Schools 教學
+- 修改: 添加科學計算功能
+
+### 作業三:部落格系統
+- [查看作業](homework/03/)
+- 來源: 使用 ChatGPT 輔助
+- [ChatGPT 對話連結](https://chat.openai.com/share/xxx)
+- 修改: 自己寫的 CSS 樣式
+
+## AI 使用說明
+
+- 作業二、三有使用 AI
+- 主要用於除錯和語法查詢
+- 核心邏輯為自己撰寫
+```
+
+### 9.2 評分標準
+
+#### 來源誠實度(重要!)
+
+| 情況 | 處理方式 |
+|------|---------|
+| 誠實標註來源 | 正常評分 |
+| 未標註,經查證為原創 | 正常評分 |
+| 未標註,查證為抄襲 | **直接不及格** |
+
+#### 完成度
+
+| 完成情況 | 預估分數 |
+|---------|---------|
+| 期中期末都交,功能完整 | 60-100 |
+| 只交一個,功能完整 | 40-70 |
+| 兩個都交,但極陽春 | 30-60 |
+| 只交一個,且極陽春 | 20-40 |
+| 都不交 | 0-30(幾乎不可能及格) |
+
+> **極陽春定義**: 只有一個 HTML 頁面,無 CSS,無 JavaScript,無後端
+
+#### 美觀與創意(加分項)
+
+- 精美的 CSS 設計: +5~10 分
+- 使用 Bootstrap 等模板: +3~5 分
+- 創意功能: +5~15 分
+- 響應式設計: +3~5 分
+
+### 9.3 現場展示(強烈建議)
+
+#### 展示時間
+
+- 第 17、18 週(彈性上課週)
+- 每人約 5-10 分鐘
+
+#### 展示優勢
+
+1. **分數可能較高**: 可當場說明設計理念
+2. **清楚交代來源**: 避免誤會
+3. **即時回答問題**: 展現理解程度
+4. **展示實際運作**: 確認程式可正常執行
+
+#### 不展示的替代方案
+
+**需在 README.md 中詳細說明**:
+- 每個功能的實作方式
+- 哪些部分使用 AI 或參考資料
+- 如何運行專案(安裝步驟、執行指令)
+- 重要功能的螢幕截圖
+
+### 9.4 繳交期限
+
+**最終期限**: 2025年6月8日 23:59
+
+**注意事項**:
+- 第 17、18 週不上課(彈性上課)
+- 可選擇現場展示或線上繳交
+- 逾期不候
+
+---
+
+## 十、遊戲開發討論
+
+### 10.1 為什麼不建議做遊戲
+
+#### 教師觀點
+
+1. **焦點偏離**: 花大量時間在遊戲引擎,而非網站技術
+2. **美術需求**: 遊戲需要精美素材,非程式核心
+3. **後端缺失**: 純前端遊戲無法展現後端能力
+4. **評分困難**: 難以評估網站設計能力
+
+#### 學生常見問題
+
+- 沉迷於遊戲邏輯,忽略 HTML/CSS
+- 使用引擎卻不理解原理
+- 最終作品缺乏後端功能(資料庫、API 等)
+
+### 10.2 如果堅持做遊戲
+
+#### 必要條件
+
+1. **必須有後端功能**:
+   - 排行榜(儲存到資料庫)
+   - 帳號系統(登入、註冊)
+   - 遊戲存檔
+
+2. **使用成熟引擎**:
+   - **Phaser.js**: 2D 遊戲
+   - **Three.js**: 3D 遊戲
+
+3. **明確標註來源**:
+   - 哪些程式碼來自範例
+   - 哪些是自己撰寫
+
+### 10.3 推薦的遊戲引擎
+
+#### Phaser.js (2D)
+
+**官網**: https://phaser.io/
+
+**特點**:
+- 專為 HTML5 遊戲設計
+- 豐富的範例與文件
+- 支援物理引擎
+
+**學習資源**:
+- [官方範例](https://phaser.io/examples)
+- [Phaser GitHub](https://github.com/photonstorm/phaser)
+
+**不建議原因**: 仍然是前端為主,後端整合困難
+
+#### Unity (3D/2D,不建議用於本課程)
+
+**特點**:
+- 遊戲產業標準
+- 跨平台(PC、手機、主機)
+- 適合手機遊戲
+
+**學習曲線**: 陡峭,需額外課程
+
+#### Unreal Engine (3D,不建議用於本課程)
+
+**特點**:
+- AAA 級遊戲引擎
+- 頂尖畫面表現
+- 主要用於 PC/主機遊戲
+
+**學習曲線**: 非常陡峭
+
+### 10.4 簡易 2D 遊戲範例
+
+**不使用引擎的 Ping-Pong 遊戲**:
+- 純 JavaScript + Canvas
+- 適合學習基礎遊戲邏輯
+- [範例連結](https://github.com/some-repo/ping-pong)
+
+**使用 Phaser 的 2048 遊戲**:
+- 展示 Phaser 基本用法
+- [線上 Demo](https://username.github.io/2048-phaser/)
+
+---
+
+## 十一、其他課程建議
+
+### 11.1 大學能學到的 vs 學不到的
+
+#### 適合在大學學習
+
+- **演算法與資料結構**: 學術核心
+- **作業系統**: 理論與實作
+- **網路概論**: 協定與架構
+- **資料庫系統**: SQL 與設計
+
+#### 大學難以學到(需自學或業界實習)
+
+- **遊戲設計**: 需產業經驗
+- **水電技術**: 高職專長
+- **前端框架**: 變化太快,學校跟不上
+- **AI 工程**: 需大量運算資源
+
+### 11.2 遊戲設計課程
+
+**本校開設情況**:
+- 課程名稱: 遊戲設計
+- 開課教師: 趙老師(傳統講師)
+- 開課頻率: 不定期
+
+**建議**:
+- 若對遊戲有興趣,可選修
+- 但不建議在網站設計課程中做遊戲
+
+### 11.3 證照考試
+
+#### 水電證照(丙級)
+
+- **高職重視**: 作為就業門檻
+- **大學不重視**: 台大電機系不會要求
+
+#### 程式證照
+
+- 較少企業認可
+- 實作能力更重要
+
+---
+
+## 十二、數字單位補充
+
+### 12.1 電腦容量單位
+
+| 單位 | 符號 | 數值 | 中文(台灣) | 中文(中國) |
+|-----|------|------|----------|----------|
+| Byte | B | 1 | 位元組 | 字節 |
+| Kilobyte | KB | 10³ | 千位元組 | 千字節 |
+| Megabyte | MB | 10⁶ | 百萬位元組 | 兆字節 |
+| Gigabyte | GB | 10⁹ | 十億位元組 | 吉字節 |
+| Terabyte | TB | 10¹² | 兆位元組 | 太字節 |
+
+**二進位單位**(實際硬碟容量):
+- 1 KB = 1024 B (2¹⁰)
+- 1 MB = 1024 KB (2²⁰)
+- 1 GB = 1024 MB (2³⁰)
+- 1 TB = 1024 GB (2⁴⁰)
+
+### 12.2 「兆」的歧義
+
+**台灣用法**:
+- **一兆** = 10¹² = 1,000,000,000,000(一萬億)
+
+**中國用法**:
+- **一兆** = 10⁶ = 1,000,000(一百萬)
+
+**無線電頻率**:
+- **MHz(兆赫)** = 10⁶ Hz(百萬赫茲)
+
+**建議**: 使用「萬億」或「百萬」,避免「兆」造成混淆
+
+---
+
+## 十三、總結
+
+### 13.1 本堂課重點
+
+1. **Deno 版本問題**: 需更新為 JSR 引用方式
+2. **Canvas 繪圖**: 點陣圖,適合遊戲與圖表
+3. **SVG 向量圖**: 可縮放,適合圖示與簡單圖形
+4. **Bootstrap**: 快速建立響應式網站
+5. **GitHub Pages**: 部署靜態網站
+6. **作業說明**: 誠實標註來源,期中期末都要交
+
+### 13.2 期中期末作業提醒
+
+- **期限**: 2025/6/8 23:59
+- **必做**: 期中 + 期末
+- **建議**: 現場展示
+- **禁止**: 抄襲卻不標註來源
+
+### 13.3 下週預告
+
+- 修正 Deno 2.x 相關問題
+- EJS 模板引擎(重新測試)
+- Session 登入系統(重新測試)
+- 更多實戰範例
+
+---
+
+**祝大家期中期末作業順利!有問題隨時提問。**
