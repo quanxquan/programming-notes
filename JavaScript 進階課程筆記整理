@@ -1,0 +1,701 @@
+# JavaScript 進階課程筆記整理(Markdown格式)
+
+## 一、課程概述
+
+本堂課深入探討 JavaScript 的進階概念,包括函數作為參數傳遞、匿名函數、箭頭函數、字典/物件、類別與繼承,以及 DOM 和 BOM 的操作。課程強調實作練習,並鼓勵學生使用 AI 輔助學習,但需記錄使用情況。
+
+---
+
+## 二、函數進階概念
+
+### 2.1 函數作為參數傳遞
+
+JavaScript 允許將函數作為參數傳遞給其他函數,這是函數式編程的核心特性。
+
+#### 基本範例
+
+```javascript
+// 定義加法和減法函數
+let add = (a, b) => a + b;
+let sub = (a, b) => a - b;
+
+// 接受函數作為參數的高階函數
+function calculate(a, b, operation) {
+    return operation(a, b);
+}
+
+// 使用方式
+console.log(calculate(8, 5, sub));  // 輸出: 3
+console.log(calculate(8, 5, add));  // 輸出: 13
+```
+
+#### 實際應用:數值積分
+
+```javascript
+// 定積分函數
+function integrate(f, a, b) {
+    // 數值積分實作
+    // f 是要積分的函數
+    // a 和 b 是積分範圍
+}
+```
+
+### 2.2 函數式編程常用方法
+
+#### map 方法
+
+對陣列的每個元素應用函數轉換:
+
+```javascript
+let arr = [3, 1, 5, 4, 2];
+
+// 使用平方函數
+let squared = arr.map(x => x * x);
+console.log(squared);  // [9, 1, 25, 16, 4]
+
+// 使用 Math.sin
+let sinValues = arr.map(x => Math.sin(x));
+```
+
+#### forEach 方法
+
+遍歷陣列並執行操作:
+
+```javascript
+let arr = [1, 2, 3, 4, 5];
+
+// 傳入印出函數
+arr.forEach(console.log);
+// 輸出: 1, 2, 3, 4, 5
+```
+
+### 2.3 函數宣告方式比較
+
+#### 傳統函數宣告
+
+```javascript
+function add(a, b) {
+    return a + b;
+}
+```
+
+#### 函數表達式(匿名函數)
+
+```javascript
+let add = function(a, b) {
+    return a + b;
+};
+```
+
+#### 箭頭函數(ES6)
+
+```javascript
+let add = (a, b) => a + b;
+let square = x => x * x;  // 單一參數可省略括號
+
+// 多行箭頭函數需要 return
+let complex = (a, b) => {
+    let sum = a + b;
+    return sum * 2;
+};
+```
+
+> **重要差異**: 箭頭函數與傳統函數在 `this` 的綁定時機不同
+> - 箭頭函數使用詞法作用域(Lexical Scope)綁定
+> - 傳統函數使用動態綁定
+
+---
+
+## 三、字典與物件
+
+### 3.1 JavaScript 中的字典
+
+在 JavaScript 中,物件本身就可以作為字典使用。
+
+#### 基本字典操作
+
+```javascript
+// 中英翻譯字典
+let c2e = {
+    "狗": "dog",
+    "貓": "cat",
+    "鳥": "bird"
+};
+
+// 查詢
+console.log(c2e["狗"]);  // 輸出: dog
+
+// 查詢不存在的鍵會返回 undefined
+console.log(c2e["魚"]);  // 輸出: undefined
+```
+
+#### 月份轉換範例
+
+```javascript
+let months = {
+    "January": 1,
+    "February": 2,
+    "March": 3,
+    // ...
+};
+
+console.log(months["January"]);  // 輸出: 1
+```
+
+### 3.2 JSON (JavaScript Object Notation)
+
+JSON 不只包含字典,還可以組合陣列、整數、浮點數、字串、布林值等多種資料型態。
+
+#### JSON 的主要用途
+
+- 資料序列化與傳輸
+- 作為訊息交換格式
+- 後端與前端的資料溝通(在伺服器課程會詳細介紹)
+
+---
+
+## 四、物件導向編程
+
+### 4.1 傳統物件寫法(字典包函數)
+
+```javascript
+// 狗物件
+let dog = {
+    say: function() {
+        console.log("旺旺");
+    }
+};
+
+// 貓物件
+let cat = {
+    say: function() {
+        console.log("喵喵");
+    }
+};
+
+// 使用
+dog.say();  // 輸出: 旺旺
+cat.say();  // 輸出: 喵喵
+
+// 在陣列中使用
+let animals = [dog, cat, dog];
+animals.forEach(animal => animal.say());
+// 輸出: 旺旺 喵喵 旺旺
+```
+
+### 4.2 ES6 類別語法
+
+#### 基本類別定義
+
+```javascript
+// 狗類別
+class Dog {
+    say() {
+        console.log("旺旺");
+    }
+}
+
+// 貓類別
+class Cat {
+    say() {
+        console.log("喵喵");
+    }
+}
+
+// 創建實例
+let dog1 = new Dog();
+let cat1 = new Cat();
+
+// 使用
+let animals = [dog1, cat1, new Dog()];
+animals.forEach(animal => animal.say());
+```
+
+#### 包含建構函數的類別
+
+```javascript
+// 圓形類別
+class Circle {
+    constructor(r) {
+        this.r = r;  // this 指向當前物件實例
+    }
+  
+    area() {
+        return 3.14 * this.r * this.r;
+    }
+}
+
+// 使用
+let c1 = new Circle(3);
+console.log(c1.r);       // 輸出: 3
+console.log(c1.area());  // 輸出: 28.26
+
+let c2 = new Circle(2);
+console.log(c2.area());  // 輸出: 12.56
+```
+
+### 4.3 封裝技巧
+
+使用 getter 和 setter 方法保護內部屬性:
+
+```javascript
+class Circle {
+    constructor(r) {
+        this._r = r;  // 使用底線表示私有屬性(約定俗成)
+    }
+  
+    // Getter
+    getR() {
+        return this._r;
+    }
+  
+    // Setter
+    setR(value) {
+        if (value > 0) {
+            this._r = value;
+        }
+    }
+  
+    area() {
+        return 3.14 * this._r * this._r;
+    }
+}
+```
+
+> **軟體工程考量**: 直接修改成員變數可能導致維護問題,使用 getter/setter 提供更好的封裝。
+
+### 4.4 鏈式語法(Method Chaining)
+
+```javascript
+class ComplexNumber {
+    constructor(real, imag) {
+        this.real = real;
+        this.imag = imag;
+    }
+  
+    add(other) {
+        this.real += other.real;
+        this.imag += other.imag;
+        return this;  // 返回自身,支援鏈式調用
+    }
+  
+    multiply(other) {
+        // 複數乘法實作
+        return this;
+    }
+}
+
+// 使用鏈式語法
+let c = new ComplexNumber(1, 2);
+c.add(new ComplexNumber(2, 3)).multiply(new ComplexNumber(1, 1));
+```
+
+### 4.5 實用類別範例
+
+#### 二維點類別
+
+```javascript
+class Point2D {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+  
+    add(other) {
+        return new Point2D(this.x + other.x, this.y + other.y);
+    }
+  
+    distance(other) {
+        let dx = this.x - other.x;
+        let dy = this.y - other.y;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+}
+```
+
+#### N 維向量類別
+
+```javascript
+class Vector {
+    constructor(components) {
+        this.data = components;  // 陣列儲存各維度分量
+    }
+  
+    add(other) {
+        let result = this.data.map((val, i) => val + other.data[i]);
+        return new Vector(result);
+    }
+  
+    dot(other) {
+        return this.data.reduce((sum, val, i) => sum + val * other.data[i], 0);
+    }
+}
+```
+
+---
+
+## 五、JavaScript 歷史與語法演進
+
+### 5.1 語法變遷
+
+- **2015-2018年**: JavaScript 經歷重大修改(ES6+)
+- **舊語法**: 仍然可以運行,但不建議使用
+- **新語法**: 解決舊語法的缺陷,但實作機制可能仍基於舊方式
+
+### 5.2 原型鏈(Prototype Chain)
+
+JavaScript 的類別實際上是基於原型鏈實現的:
+
+```
+物件實例 → Prototype → Object.prototype → null
+```
+
+> **重要提醒**: 
+> - JavaScript 的物件導向實作與其他語言(如 Python、Java)不同
+> - 深入使用時可能遇到與預期不符的行為
+> - 初學者建議使用 `class` 語法,避免直接操作原型鏈
+> - 想成為 JavaScript 專家才需深入研究原型鏈
+
+### 5.3 語言特性
+
+**JavaScript 的特點**:
+- 動態型別語言
+- 設計較為隨意(1995年倉促設計)
+- 為網頁互動而生
+- 向後相容性強(幾乎不廢棄舊語法)
+
+**學習建議**:
+- 優先學習新語法
+- 遇到舊語法時需能辨識但不必深究
+- 注意與其他語言的差異,避免直接套用經驗
+
+---
+
+## 六、DOM 與 BOM
+
+### 6.1 DOM (Document Object Model)
+
+文件物件模型 - 網頁的樹狀結構表示。
+
+#### 基本操作
+
+```javascript
+// 取得元素
+let element = document.getElementById("demo");
+
+// 修改內容
+element.innerHTML = "新內容";
+
+// 修改樣式
+element.style.color = "red";
+```
+
+### 6.2 BOM (Browser Object Model)
+
+瀏覽器物件模型 - 除了 DOM 之外的瀏覽器物件。
+
+#### 視窗大小
+
+```javascript
+// 取得視窗內部寬度
+let width = window.innerWidth;
+
+// 取得視窗內部高度
+let height = window.innerHeight;
+
+console.log(`視窗大小: ${width} x ${height}`);
+```
+
+#### 位置與歷史
+
+```javascript
+// 取得當前 URL
+let currentURL = window.location.href;
+
+// 導向新頁面
+window.location.href = "https://example.com";
+
+// 瀏覽歷史操作
+window.history.back();     // 上一頁
+window.history.forward();  // 下一頁
+```
+
+### 6.3 Web API
+
+與後端相接的介面技術:
+
+- **AJAX**: 舊技術,不建議使用
+- **Fetch API**: 現代標準,內建於瀏覽器
+- **Canvas/WebGL**: 繪圖 API
+
+---
+
+## 七、作業與練習
+
+### 7.1 本週習題(習題四)
+
+#### 第一題:陣列去重
+
+移除陣列中的重複元素。
+
+```javascript
+// 範例
+let arr = [1, 2, 2, 3, 4, 4, 5];
+let unique = removeDuplicates(arr);
+console.log(unique);  // [1, 2, 3, 4, 5]
+```
+
+#### 第二題:字串反轉
+
+反轉字串的字元順序。
+
+#### 第三題:階乘計算
+
+計算數字的階乘。
+
+#### 第四題:費波那契數列
+
+生成費波那契數列的前 N 項。
+
+#### 第五題:陣列過濾
+
+使用 `filter` 方法過濾陣列元素。
+
+**提示**: 可以將判斷條件作為函數參數傳入,提高通用性。
+
+```javascript
+// 範例:過濾偶數
+let arr = [1, 2, 3, 4, 5, 6];
+let evens = arr.filter(x => x % 2 === 0);
+
+// 更通用的寫法
+function filterArray(arr, condition) {
+    return arr.filter(condition);
+}
+
+let evens = filterArray(arr, x => x % 2 === 0);
+let odds = filterArray(arr, x => x % 2 !== 0);
+```
+
+#### 第六題:物件合併
+
+合併兩個物件。
+
+**實作考量**:
+- 檢查輸入是否為物件
+- 處理 `null` 或 `undefined` 的情況
+- 決定屬性衝突時的處理方式
+
+```javascript
+function mergeObjects(obj1, obj2) {
+    // 檢查是否為物件
+    if (typeof obj1 !== 'object' || obj1 === null) {
+        return obj2;
+    }
+    if (typeof obj2 !== 'object' || obj2 === null) {
+        return obj1;
+    }
+  
+    // 合併
+    let result = {...obj1};
+    for (let key in obj2) {
+        if (obj2.hasOwnProperty(key)) {
+            result[key] = obj2[key];
+        }
+    }
+    return result;
+}
+```
+
+#### 第七題:向量類別
+
+實作一個向量類別,至少包含:
+- 建構函數
+- 加法 `add()`
+- 減法 `sub()`
+- 內積 `dot()`
+
+```javascript
+class Vector {
+    constructor(x, y, z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+  
+    add(other) {
+        return new Vector(
+            this.x + other.x,
+            this.y + other.y,
+            this.z + other.z
+        );
+    }
+  
+    sub(other) {
+        return new Vector(
+            this.x - other.x,
+            this.y - other.y,
+            this.z - other.z
+        );
+    }
+  
+    dot(other) {
+        return this.x * other.x + 
+               this.y * other.y + 
+               this.z * other.z;
+    }
+}
+
+// 使用
+let v1 = new Vector(1, 2, 3);
+let v2 = new Vector(4, 5, 6);
+let v3 = v1.add(v2);
+console.log(v3);  // Vector {x: 5, y: 7, z: 9}
+```
+
+### 7.2 使用 AI 的規範
+
+如果使用 AI 協助完成作業,需要在 README.md 中記錄:
+
+```markdown
+# 作業說明
+
+學號: 12345678
+
+## AI 使用情況
+
+使用題目: 1, 2, 3, 5
+自己完成: 4, 6, 7
+
+## AI 修改說明
+
+- 第 1 題: 未修改 AI 產生的程式碼
+- 第 2 題: 修改了變數命名,使其更易讀
+- 第 3 題: AI 版本有錯誤,已修正邊界條件判斷
+- 第 5 題: 添加了額外的註解說明
+
+## ChatGPT 對話連結
+
+[對話記錄](https://chat.openai.com/share/xxx)
+
+> 若未登入帳號無法分享連結,請註明「未登入帳號」
+```
+
+---
+
+## 八、重要概念回顧
+
+### 8.1 函數作為參數的優勢
+
+**靈活性**:
+```javascript
+// 差異示範
+// 寫死的版本
+function differentiateSquare(x) {
+    return 2 * x;
+}
+
+// 通用的版本
+function differentiate(f, x) {
+    let h = 0.0001;
+    return (f(x + h) - f(x)) / h;
+}
+
+// 可以微分任意函數
+console.log(differentiate(x => x * x, 3));      // 平方
+console.log(differentiate(x => Math.sin(x), 0)); // 正弦
+```
+
+### 8.2 運算符注意事項
+
+#### 相等性判斷
+
+```javascript
+// 不嚴格相等(會進行型別轉換)
+console.log(1 == "1");   // true
+
+// 嚴格相等(不轉換型別)
+console.log(1 === "1");  // false
+
+// 建議使用 === 和 !==
+```
+
+#### 其他運算符
+
+```javascript
+// 不等於
+console.log(1 != 2);   // true
+console.log(1 !== "1"); // true(嚴格不等於)
+
+// 三元運算符
+let result = (age >= 18) ? "成年" : "未成年";
+```
+
+---
+
+## 九、下週預告
+
+### 9.1 課程內容
+
+- 深入 DOM 操作
+- 事件處理
+- 響應式網頁設計(Responsive Design)
+- 手機與電腦通用的網站製作
+
+### 9.2 學習建議
+
+1. **完成本週習題**: 紮實的練習是進步的關鍵
+2. **實驗性學習**: 嘗試修改範例程式碼,觀察結果
+3. **建立筆記**: 記錄遇到的問題和解決方法
+4. **善用 AI**: 適度使用 AI 輔助,但要理解程式碼
+5. **提問互動**: 遇到不懂的地方及時詢問
+
+---
+
+## 十、補充說明
+
+### 10.1 Curry 化(進階選修)
+
+Curry 化是一種函數式編程技巧,但對初學者較為困難,目前不要求掌握。
+
+**概念簡介**:
+```javascript
+// 一般函數
+function add(a, b, c) {
+    return a + b + c;
+}
+
+// Curry 化版本
+function curriedAdd(a) {
+    return function(b) {
+        return function(c) {
+            return a + b + c;
+        };
+    };
+}
+
+// 使用
+console.log(add(1, 2, 3));           // 6
+console.log(curriedAdd(1)(2)(3));    // 6
+```
+
+這種技巧源自 1936 年的數學理論,在某些場景下很有用,但不是初學者的必修內容。
+
+### 10.2 Generator(進階選修)
+
+Generator 函數是 ES6 引入的特性,用於創建可暫停和恢復的函數,目前也不要求掌握。
+
+---
+
+## 十一、總結
+
+本堂課深入探討了 JavaScript 的進階特性,特別是:
+- **函數式編程**: 函數作為一等公民,可作為參數傳遞
+- **物件導向**: 從傳統寫法到 ES6 類別語法
+- **實用技巧**: 字典操作、陣列方法、DOM/BOM
+
+透過七道習題的練習,將能鞏固這些概念。記住,程式設計能力需要大量實作才能提升,持續練習是成功的關鍵。
+
+---
+
+**祝學習順利!有問題隨時提問。**
